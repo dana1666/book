@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart - BookSouq</title>
+    <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="assets/vendor/aos/aos.css" rel="stylesheet">
+    <link href="assets/vendor/animate.css/animate.min.css" rel="stylesheet">
+    <link href="assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+    <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+    <link href="assets/css/main.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: white;
+            color: #333;
+            padding-top: 100px;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            padding: 15px;
+            max-width: 100%;
+        }
+        .card img {
+            border-radius: 10px;
+            max-height: 120px;
+            max-width: 120px;
+            object-fit: cover;
+            margin-right: 15px;
+        }
+        .card-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .card-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .controls-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-left: 10px;
+        }
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .quantity-controls button {
+            border: none;
+            background-color: #fd7e14;
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .quantity-controls input {
+            text-align: center;
+            width: 40px;
+            margin: 0 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .remove-link {
+            color: #dc3545;
+            cursor: pointer;
+            text-decoration: underline;
+            margin-top: 5px;
+            text-align: right;
+            margin-right: 0.5cm;
+        }
+        .remove-link:hover {
+            color: #c82333;
+        }
+        .btn-primary {
+            background-color: #fd7e14;
+            border: none;
+            border-radius: 50px;
+            padding: 10px 30px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            align-self: flex-end;
+            margin: 20px;
+        }
+        .btn-primary:hover {
+            background-color: #e0690d;
+        }
+        .header {
+            background-color: #3c3e4a;
+            color: white;
+            padding: 15px 0;
+        }
+        .header .navmenu ul li a {
+            color: white;
+            padding: 8px 15px;
+            display: inline-block;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        .header .navmenu ul li a.active {
+            background-color: transparent;
+            color: #fd7e14;
+        }
+        .header .navmenu ul li a:hover {
+            background-color: #fd7e14;
+            color: white;
+            border-radius: 50px;
+            padding: 8px 25px;
+        }
+        .header .logo h1 {
+            margin: 0;
+        }
+        .empty-cart-message {
+            text-align: center;
+            color: orange;
+            font-size: 24px;
+        }
+        #checkoutButton.hidden {
+            display: none;
+        }
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Bar -->
+    <header id="header" class="header d-flex align-items-center fixed-top">
+        <div class="container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
+            <a href="buyer_home.html" class="logo d-flex align-items-center">
+                <h1 class="sitename">BookSouq</h1>
+            </a>
+            <nav id="navmenu" class="navmenu">
+                <ul>
+                    <li><a href="buyer_home.html" class="active">Home</a></li>
+                    <li><a href="buyer_list.html">Books</a></li>
+                    <li><a href="index.html" onclick="logout()">Logout</a></li>
+                </ul>
+                <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <h2 class="text-center">Your Cart</h2>
+        <div id="cartList"></div>
+        <button id="checkoutButton" class="btn-primary">Checkout</button>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/vendor/aos/aos.js"></script>
+    <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
+    <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                alert('You need to log in first.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const decodedToken = JSON.parse(atob(token.split('.')[1]));
+            const userRole = decodedToken.role;
+
+            if (userRole !== 'buyer') {
+                alert('Access denied. Only buyers can access this page.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const buyerId = decodedToken.userId;
+
+            // Fetch API URL from server configuration
+            const configResponse = await fetch('/config');
+            const config = await configResponse.json();
+            const apiUrl = config.apiUrl; // Make sure this API URL is correct
+
+            try {
+                const response = await fetch(`${apiUrl}/cart`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const cartList = document.getElementById('cartList');
+                const checkoutButton = document.getElementById('checkoutButton');
+                
+                if (response.ok) {
+                    const cartItems = await response.json();
+                    if (cartItems.length === 0) {
+                        cartList.innerHTML = '<p class="empty-cart-message">Your cart is empty.</p>';
+                        checkoutButton.classList.add('hidden');
+                    } else {
+                        cartItems.forEach(item => {
+                            const card = document.createElement('div');
+                            card.className = 'card';
+                            card.innerHTML = `
+                                <img src="http://localhost:4052/${item.image_path || 'assets/img/default-book.png'}" alt="${item.title}">
+                                <div class="card-body">
+                                    <h5 class="card-title">${item.title}</h5>
+                                </div>
+                                <div class="controls-container">
+                                    <div class="quantity-controls">
+                                        <button onclick="updateQuantity(${item.cart_item_id}, ${item.quantity - 1})">-</button>
+                                        <input type="number" value="${item.quantity}" readonly>
+                                        <button onclick="updateQuantity(${item.cart_item_id}, ${item.quantity + 1})">+</button>
+                                    </div>
+                                    <span class="remove-link" onclick="removeFromCart(${item.cart_item_id})">Remove</span>
+                                </div>
+                            `;
+                            cartList.appendChild(card);
+                        });
+                    }
+                } else {
+                    const errorText = await response.text();
+                    alert(`Error: ${errorText}`);
+                }
+            } catch (error) {
+                alert(`Network error: ${error.message}`);
+            }
+        });
+
+        async function updateQuantity(cartItemId, newQuantity) {
+            const configResponse = await fetch('/config');
+            const config = await configResponse.json();
+            const apiUrl = config.apiUrl;
+
+            if (newQuantity <= 0) {
+                removeFromCart(cartItemId);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${apiUrl}/cart/update`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ cartItemId, newQuantity })
+                });
+
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    const { error, bookTitle } = await response.json();
+                    displayAlert(`Error: ${error} for "${bookTitle}"`);
+                }
+            } catch (error) {
+                alert(`Network error: ${error.message}`);
+            }
+        }
+
+        async function removeFromCart(cartItemId) {
+            const configResponse = await fetch('/config');
+            const config = await configResponse.json();
+            const apiUrl = config.apiUrl;
+
+            try {
+                const response = await fetch(`${apiUrl}/cart/remove/${cartItemId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    const errorText = await response.text();
+                    alert(`Error: ${errorText}`);
+                }
+            } catch (error) {
+                alert(`Network error: ${error.message}`);
+            }
+        }
+
+        async function checkout() {
+            const configResponse = await fetch('/config');
+            const config = await configResponse.json();
+            const apiUrl = config.apiUrl;
+
+            const token = localStorage.getItem('token');
+            const buyerId = JSON.parse(atob(token.split('.')[1])).userId;
+
+            try {
+                const response = await fetch(`${apiUrl}/cart/check`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ buyerId })
+                });
+
+                if (response.ok) {
+                    const { orderId, totalPrice } = await response.json();
+                    window.location.href = `order.html?orderId=${orderId}&totalPrice=${totalPrice}`;
+                } else {
+                    const { error, bookTitle } = await response.json();
+                    displayAlert(`Error: ${error} for "${bookTitle}"`);
+                }
+            } catch (error) {
+                displayAlert(`Network error: ${error.message}`);
+            }
+        }
+
+        document.getElementById('checkoutButton').addEventListener('click', checkout);
+
+        function displayAlert(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert-danger';
+            alertDiv.innerHTML = message;
+            document.querySelector('.container').appendChild(alertDiv);
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

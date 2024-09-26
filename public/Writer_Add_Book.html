@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Book - BookSouq</title>
+
+    <!-- Include CSS files -->
+    <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="assets/vendor/aos/aos.css" rel="stylesheet">
+    <link href="assets/vendor/animate.css/animate.min.css" rel="stylesheet">
+    <link href="assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+    <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+    <link href="assets/css/main.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: white;
+            color: #333;
+            padding-top: 100px;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 5px;
+            background-color: #f5f5f5;
+            color: #333;
+            border: 1px solid #ccc;
+        }
+
+        .form-control::placeholder,
+        .form-select {
+            color: #888;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            background-color: #e9e9e9;
+            border-color: #fd7e14;
+        }
+
+        .btn-primary {
+            background-color: #fd7e14;
+            border: none;
+            border-radius: 50px;
+            padding: 10px 30px;
+            transition: background-color 0.3s;
+            font-weight: bold;
+        }
+
+        .btn-primary:hover {
+            background-color: #e0690d;
+        }
+
+        .container {
+            max-width: 500px;
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .sitename {
+            color: #fd7e14;
+            font-weight: bold;
+            font-size: 24px;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .alert {
+            border-radius: 5px;
+        }
+
+        .header {
+            background-color: #3c3e4a;
+            color: white;
+            padding: 15px 0;
+        }
+
+        .header .navmenu ul li a {
+            color: white;
+            padding: 8px 15px;
+            display: inline-block;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .header .navmenu ul li a.active {
+            background-color: transparent;
+            color: #fd7e14;
+        }
+
+        .header .navmenu ul li a:hover {
+            background-color: #fd7e14;
+            color: white;
+            border-radius: 50px;
+            padding: 8px 25px;
+        }
+
+        .header .logo h1 {
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body class="index-page">
+
+    <header id="header" class="header d-flex align-items-center fixed-top">
+        <div class="container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
+            <a href="Writer_home.html" class="logo d-flex align-items-center">
+                <h1 class="sitename">BookSouq</h1>
+            </a>
+            <nav id="navmenu" class="navmenu">
+                <ul>
+                    <li><a href="Writer_home.html" class="active">Home</a></li>
+                    <li><a href="my_book.html">My Books</a></li>
+                    <li><a href="index.html">Logout</a></li>
+                </ul>
+                <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <h2 class="text-center">Add a New Book</h2>
+        <form id="addBookForm" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="title" class="form-label">Book Title</label>
+                <input type="text" class="form-control" id="title" name="title" placeholder="Enter the book title" required>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="4" placeholder="Enter the book description" required></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="price" class="form-label">Price</label>
+                <input type="number" class="form-control" id="price" name="price" placeholder="Enter the book price" required>
+            </div>
+            <div class="mb-3">
+                <label for="stockQuantity" class="form-label">Stock Quantity</label>
+                <input type="number" class="form-control" id="stockQuantity" name="stockQuantity" placeholder="Enter the stock quantity" required>
+            </div>
+            <div class="mb-3">
+                <label for="bookImage" class="form-label">Book Image</label>
+                <input type="file" class="form-control" id="bookImage" name="bookImage" accept="image/*" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Add Book</button>
+        </form>
+        <div id="message" class="mt-3"></div>
+    </div>
+
+    <!-- Include JS Libraries -->
+    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/vendor/aos/aos.js"></script>
+    <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
+    <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
+    <script src="assets/js/main.js"></script>
+
+    <!-- Form Submission Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            const form = document.getElementById('addBookForm');
+            const messageElement = document.getElementById('message');
+            const token = localStorage.getItem('token');
+
+            // Fetch API URL from the server config
+            const configResponse = await fetch('/config');
+            const config = await configResponse.json();
+            const apiUrl = config.apiUrl;
+
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                messageElement.innerHTML = '';  // Clear any existing messages
+
+                // Get the form data
+                const title = document.getElementById('title').value.trim();
+                const description = document.getElementById('description').value.trim();
+                const price = parseFloat(document.getElementById('price').value);
+                const stockQuantity = parseInt(document.getElementById('stockQuantity').value);
+                const bookImage = document.getElementById('bookImage').files[0];
+
+                // Validate inputs
+                if (title.length < 2 || title.length > 50 || description.length < 2 || description.length > 300 ||
+                    isNaN(price) || price < 1 || price > 300 || isNaN(stockQuantity) || stockQuantity < 1 || stockQuantity > 1000) {
+                    messageElement.innerHTML = `<div class="alert alert-danger">Invalid inputs. Please check your form data.</div>`;
+                    return;
+                }
+
+                // Prepare the form data to be sent
+                const formData = new FormData();
+                formData.append('title', title);
+                formData.append('description', description);
+                formData.append('price', price);
+                formData.append('stockQuantity', stockQuantity);
+                formData.append('bookImage', bookImage);
+
+                const decodedToken = JSON.parse(atob(token.split('.')[1]));
+                const writerId = decodedToken.userId;
+                formData.append('writerId', writerId);
+
+                try {
+                    const response = await fetch(`${apiUrl}/books`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        messageElement.innerHTML = '<div class="alert alert-success">Book added successfully! Please wait for approval...</div>';
+                        setTimeout(() => {
+                            window.location.href = 'Writer_home.html';
+                        }, 2000);  // Delay for the success message
+                    } else {
+                        const errorMessage = await response.text();
+                        messageElement.innerHTML = `<div class="alert alert-danger">Error: ${errorMessage}</div>`;
+                    }
+                } catch (error) {
+                    messageElement.innerHTML = `<div class="alert alert-danger">Network error: ${error.message}</div>`;
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

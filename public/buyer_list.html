@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Books - BookSouq</title>
+    <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="assets/vendor/aos/aos.css" rel="stylesheet">
+    <link href="assets/vendor/animate.css/animate.min.css" rel="stylesheet">
+    <link href="assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+    <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+    <link href="assets/css/main.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: white;
+            color: #333;
+            margin: 0;
+            padding-top: 100px; 
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin-top: 20px;
+        }
+
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            max-width: 100%;
+            height: 100%;
+            background-color: #fff;
+        }
+
+        .card img {
+            border-radius: 10px;
+            width: 100%;
+            height: 200px;
+            object-fit: contain; 
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background-color: #fd7e14;
+            border: none;
+            border-radius: 50px;
+            padding: 10px 30px;
+            transition: background-color 0.3s;
+            font-weight: bold;
+        }
+
+        .btn-primary:hover {
+            background-color: #e0690d;
+        }
+
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .col-lg-6 {
+            flex: 0 0 48%;
+        }
+
+        .header {
+            background-color: #3c3e4a;
+            color: white;
+            padding: 15px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .header .navmenu ul li a {
+            color: white;
+            padding: 8px 15px;
+            display: inline-block;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .header .navmenu ul li a.active {
+            background-color: transparent;
+            color: #fd7e14;
+        }
+
+        .header .navmenu ul li a:hover {
+            background-color: #fd7e14;
+            color: white;
+            border-radius: 50px;
+            padding: 8px 25px;
+        }
+
+        .header .logo h1 {
+            margin: 0;
+        }
+
+        .header .navmenu ul li a i.bi-cart {
+            font-size: 1.2em;
+            vertical-align: middle; 
+        }
+
+        .header .navmenu ul li a {
+            padding: 8px 15px; 
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Bar -->
+    <header id="header" class="header d-flex align-items-center fixed-top">
+        <div class="container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
+            <a href="buyer_home.html" class="logo d-flex align-items-center">
+                <h1 class="sitename">BookSouq</h1>
+            </a>
+            <nav id="navmenu" class="navmenu">
+                <ul>
+                    <li><a href="buyer_home.html" class="active">Home</a></li>
+                    <li><a href="cart.html"><i class="bi bi-cart"></i></a></li>
+                    <li><a href="index.html" onclick="logout()">Logout</a></li>
+                </ul>
+                <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <h2 class="text-center">Discover Books</h2>
+        <div id="bookList" class="row"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/vendor/aos/aos.js"></script>
+    <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
+    <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                alert('You need to log in first.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const userRole = JSON.parse(atob(token.split('.')[1])).role; // Decode the role from token
+            if (userRole !== 'buyer') {
+                alert('Access denied. Only buyers can access this page.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Fetch API URL from server configuration
+            const configResponse = await fetch('/config');
+            const config = await configResponse.json();
+            const apiUrl = config.apiUrl;
+
+            try {
+                const response = await fetch(`${apiUrl}/books`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const bookList = document.getElementById('bookList');
+
+                if (response.ok) {
+                    const books = await response.json();
+                    console.log('Fetched books:', books);
+
+                    if (books.length === 0) {
+                        bookList.innerHTML = '<p class="text-center">No books available at the moment.</p>';
+                    } else {
+                        books.forEach(book => {
+                            const card = document.createElement('div');
+                            card.className = 'col-lg-6 card';
+                            card.innerHTML = `
+                
+                                 
+                            <img src="http://localhost:4052/${book.image_path || 'assets/img/default-book.png'}" alt="${book.title}">
+
+                                <div class="card-body">
+                                    <h5 class="card-title">${book.title}</h5>
+                                </div>
+                                <a href="buyer_book.html?bookId=${book.book_id}" class="btn btn-primary">View Details</a>
+                            `;
+                            bookList.appendChild(card);
+                        });
+                    }
+                } else {
+                    const errorMessage = await response.text();
+                    alert(`Error: ${errorMessage}`);
+                }
+            } catch (error) {
+                alert(`Network error: ${error.message}`);
+            }
+        });
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

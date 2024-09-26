@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Book - BookSouq</title>
+    <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="assets/vendor/aos/aos.css" rel="stylesheet">
+    <link href="assets/vendor/animate.css/animate.min.css" rel="stylesheet">
+    <link href="assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+    <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+    <link href="assets/css/main.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: white;
+            color: #333;
+            padding-top: 100px;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .form-control, .form-select {
+            border-radius: 5px;
+            background-color: #f5f5f5;
+            color: #333;
+            border: 1px solid #ccc;
+        }
+        .form-control::placeholder, .form-select {
+            color: #888;
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: #e9e9e9;
+            border-color: #fd7e14;
+        }
+        .btn-primary {
+            background-color: #fd7e14;
+            border: none;
+            border-radius: 50px;
+            padding: 10px 30px;
+            transition: background-color 0.3s;
+            font-weight: bold;
+        }
+        .btn-primary:hover {
+            background-color: #e0690d;
+        }
+        .container {
+            max-width: 500px;
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        .sitename {
+            color: #fd7e14;
+            font-weight: bold;
+            font-size: 24px;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .alert {
+            border-radius: 5px;
+        }
+        .header {
+            background-color: #3c3e4a;
+            color: white;
+            padding: 15px 0;
+        }
+        .header .navmenu ul li a {
+            color: white;
+            padding: 8px 15px;
+            display: inline-block;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        .header .navmenu ul li a.active {
+            background-color: transparent;
+            color: #fd7e14;
+        }
+        .header .navmenu ul li a:hover {
+            background-color: #fd7e14;
+            color: white;
+            border-radius: 50px;
+            padding: 8px 25px;
+        }
+        .header .logo h1 {
+            margin: 0;
+        }
+    </style>
+</head>
+<body class="index-page">
+
+    <header id="header" class="header d-flex align-items-center fixed-top">
+        <div class="container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
+            <a href="Writer_home.html" class="logo d-flex align-items-center">
+                <h1 class="sitename">BookSouq</h1>
+            </a>
+            <nav id="navmenu" class="navmenu">
+                <ul>
+                    <li><a href="Writer_home.html" class="active">Home</a></li>
+                    <li><a href="Writer_Add_Book.html">Add Book</a></li>
+                    <li><a href="index.html" onclick="logout()">Logout</a></li>
+                </ul>
+                <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <h2 class="text-center">Edit Book</h2>
+        <form id="editBookForm">
+            <div class="mb-3">
+                <label for="title" class="form-label">Book Title</label>
+                <input type="text" class="form-control" id="title" name="title" placeholder="Enter the book title" required>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="4" placeholder="Enter the book description" required></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="price" class="form-label">Price</label>
+                <input type="number" class="form-control" id="price" name="price" placeholder="Enter the book price" required>
+            </div>
+            <input type="hidden" id="stockQuantity" name="stockQuantity">
+            <button type="submit" class="btn btn-primary w-100">Save Changes</button>
+        </form>
+        <div id="message" class="mt-3"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/vendor/aos/aos.js"></script>
+    <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
+    <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
+    <script src="assets/js/main.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            const params = new URLSearchParams(window.location.search);
+            const bookId = params.get('bookId');
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                alert('You need to log in first.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const decodedToken = JSON.parse(atob(token.split('.')[1]));
+            if (decodedToken.role !== 'writer') {
+                alert('Access denied. You are not authorized to edit books.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            if (!bookId || !token) {
+                alert('Invalid request. Please make sure you are logged in.');
+                window.location.href = 'my_book.html';
+                return;
+            }
+
+            // Fetch API URL from server configuration
+            const configResponse = await fetch('/config');
+            const config = await configResponse.json();
+            const apiUrl = config.apiUrl;
+
+            try {
+                const response = await fetch(`${apiUrl}/books/${bookId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const book = await response.json();
+                    console.log("Fetched book details:", book);
+
+                    if (book) {
+                        document.getElementById('title').value = book.title || '';
+                        document.getElementById('description').value = book.description || '';
+                        document.getElementById('price').value = parseFloat(book.price) || 0;
+                        document.getElementById('stockQuantity').value = book.stock_quantity || 0;
+                    } else {
+                        console.error("Book details are not available");
+                        alert("Failed to fetch book details. Please try again.");
+                        window.location.href = 'my_book.html';
+                    }
+                } else {
+                    const errorMessage = await response.text();
+                    console.error(`Error fetching book details: ${errorMessage}`);
+                    alert(`Failed to fetch book details: ${errorMessage}`);
+                    window.location.href = 'my_book.html';
+                }
+            } catch (error) {
+                console.error(`Error: ${error.message}`);
+                alert(`Error: ${error.message}`);
+                window.location.href = 'my_book.html';
+            }
+
+            document.getElementById('editBookForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const title = document.getElementById('title').value.trim();
+                const description = document.getElementById('description').value.trim();
+                const price = parseFloat(document.getElementById('price').value);
+                const stockQuantity = parseInt(document.getElementById('stockQuantity').value, 10);
+                const messageElement = document.getElementById('message');
+
+                if (title.length < 2 || title.length > 50) {
+                    messageElement.innerHTML = `<div class="alert alert-danger">Title must be between 2 and 50 characters long.</div>`;
+                    return;
+                }
+
+                if (description.length < 2 || description.length > 300) {
+                    messageElement.innerHTML = `<div class="alert alert-danger">Description must be between 2 and 300 characters long.</div>`;
+                    return;
+                }
+
+                if (isNaN(price) || price < 1 || price > 300) {
+                    messageElement.innerHTML = `<div class="alert alert-danger">Price must be a number between 1 and 300.</div>`;
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`${apiUrl}/books/${bookId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ title, description, price, stockQuantity })
+                    });
+
+                    if (response.ok) {
+                        messageElement.innerHTML = '<div class="alert alert-success">Book updated successfully!</div>';
+                        setTimeout(() => {
+                            window.location.href = 'my_book.html';
+                        }, 2000);
+                    } else {
+                        const errorMessage = await response.text();
+                        messageElement.innerHTML = `<div class="alert alert-danger">Error: ${errorMessage}</div>`;
+                    }
+                } catch (error) {
+                    messageElement.innerHTML = `<div class="alert alert-danger">Network error: ${error.message}</div>`;
+                }
+            });
+        });
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

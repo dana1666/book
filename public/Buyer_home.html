@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buyer Home - BookSouq</title>
+    
+    <!-- Include CSS files -->
+    <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="assets/vendor/aos/aos.css" rel="stylesheet">
+    <link href="assets/vendor/animate.css/animate.min.css" rel="stylesheet">
+    <link href="assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+    <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+    <link href="assets/css/main.css" rel="stylesheet">
+
+    <!-- Custom styles for the notification modal -->
+    <style>
+        .header .navmenu ul li a i.bi-cart {
+            font-size: 1.2em;
+            vertical-align: middle;
+        }
+
+        .header .navmenu ul li a {
+            padding: 8px 15px;
+        }
+
+        /* Custom styles for the notification modal */
+        .modal-content {
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .modal-header {
+            background-color: #f8f9fa;
+            color: black;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
+        .modal-body {
+            font-size: 18px;
+        }
+
+        .modal-footer .btn-primary {
+            background-color: #fd7e14;
+            border-radius: 50px;
+            padding: 10px 30px;
+            font-weight: bold;
+            border: none;
+        }
+
+        .modal-footer .btn-primary:hover {
+            background-color: #e0690d;
+        }
+
+        .modal-dialog {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 1rem);
+        }
+
+        .modal.fade .modal-dialog {
+            transform: translate(0, -50%);
+            transition: transform 0.3s ease-out;
+        }
+
+        .modal.show .modal-dialog {
+            transform: translate(0, 0);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Bar -->
+    <header id="header" class="header d-flex align-items-center fixed-top">
+        <div class="container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
+            <a href="index.html" class="logo d-flex align-items-center">
+                <h1 class="sitename">BookSouq</h1>
+            </a>
+            <nav id="navmenu" class="navmenu">
+                <ul>
+                    <li><a href="cart.html"><i class="bi bi-cart"></i></a></li>
+                    <li><a href="index.html" id="logoutButton">Logout</a></li>
+                </ul>
+                <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section with Carousel -->
+    <section id="hero" class="hero section dark-background">
+        <div id="hero-carousel" class="container carousel carousel-fade" data-bs-ride="carousel">
+            <div class="carousel-item active">
+                <div class="carousel-container">
+                    <h2 class="animate__animated animate__fadeInDown">Welcome, Buyer</h2>
+                    <p class="animate__animated animate__fadeInUp">Discover and purchase your favorite books today!</p>
+                    <a href="buyer_list.html" class="btn-get-started animate__animated animate__fadeInUp scrollto">Browse Books</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wave SVG -->
+        <svg class="hero-waves" xmlns="http://www.w3.org/2000/svg" viewBox="0 24 150 28" preserveAspectRatio="none">
+            <defs>
+                <path id="wave-path" d="M-160 44c30 0 58-18 88-18s58 18 88 18 58-18 88-18 58 18 88 18v44h-352z"></path>
+            </defs>
+            <g class="wave1">
+                <use xlink:href="#wave-path" x="50" y="3"></use>
+            </g>
+            <g class="wave2">
+                <use xlink:href="#wave-path" x="50" y="0"></use>
+            </g>
+            <g class="wave3">
+                <use xlink:href="#wave-path" x="50" y="9"></use>
+            </g>
+        </svg>
+    </section>
+
+    <!-- Notification Modal -->
+    <div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="notificationModalLabel">Happy Saudi National Day</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="notificationMessage">
+            <!-- Notification message will be inserted here -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/vendor/aos/aos.js"></script>
+    <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
+    <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
+    <script src="assets/js/main.js"></script>
+
+    <!-- Page Protection Script with Debugging -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('token');
+            const role = localStorage.getItem('role');
+
+            // Debugging: Check if token and role are stored in localStorage
+            console.log('Token:', token);
+            console.log('Role:', role);
+
+            // If there's no token or the role is not buyer, redirect to login page
+            if (!token || role !== 'buyer') {
+                alert('Access denied. Please log in as a buyer.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Logout logic
+            document.getElementById('logoutButton').addEventListener('click', function() {
+                localStorage.clear();
+            });
+        });
+    </script>
+
+    <!-- Notification Script -->
+    <script>
+        let notificationShown = false;
+
+        function showSpecialOffer() {
+            const couponCode = "SA94"; 
+            const modalMessage = `Celebrate Saudi National Day with us! Use coupon code <strong>${couponCode}</strong> to enjoy a 30% discount on your purchase!`;
+
+            document.getElementById('notificationMessage').innerHTML = modalMessage;
+
+            const notificationModal = new bootstrap.Modal(document.getElementById('notificationModal'), {
+                backdrop: 'static'
+            });
+            notificationModal.show();
+
+            notificationShown = true;
+        }
+
+        function shouldShowNotification() {
+            return !localStorage.getItem('buyerNotificationShown'); 
+        }
+
+        function storeNotificationShown() {
+            localStorage.setItem('buyerNotificationShown', 'true'); 
+        }
+
+        function clearNotificationFlag() {
+            localStorage.removeItem('buyerNotificationShown');
+        }
+
+        function onBuyerLogin() {
+            if (shouldShowNotification()) {
+                showSpecialOffer();
+                storeNotificationShown();
+            }
+        }
+
+        window.onload = function () {
+            if (localStorage.getItem('token')) {
+                onBuyerLogin();
+            }
+
+            document.getElementById('logoutButton').addEventListener('click', function() {
+                clearNotificationFlag();
+                localStorage.removeItem('token'); 
+            });
+        };
+    </script>
+
+</body>
+</html>
